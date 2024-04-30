@@ -1,0 +1,119 @@
+<canvas id="myCanvas" width="100" height="100"></canvas>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    let canvas = document.getElementById("myCanvas");
+    let context = canvas.getContext("2d");
+
+    let isDrawing = false; // Flag to indicate drawing state
+    let squares = []; // Array to store falling squares
+
+    function draw() {
+      // Clear canvas
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw black background and white grid
+      drawGrid();
+
+      // Draw existing falling squares
+      squares.forEach(function(square) {
+        context.fillStyle = "yellow";
+        context.fillRect(square.x, square.y, square.width, square.height);
+        if (square.y + square.height < canvas.height) {
+          square.y += square.speed; // Move the square downwards
+        }
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    // Function to start drawing
+    function startDrawing(event) {
+      isDrawing = true;
+      addSquare(event); // Add square at the initial position
+    }
+
+    // Function to continue drawing
+    function continueDrawing(event) {
+      if (isDrawing) {
+        addSquare(event); // Add square at the current position
+      }
+    }
+
+    // Function to stop drawing
+    function stopDrawing() {
+      isDrawing = false;
+    }
+
+    // Function to add a square at the current position
+    function addSquare(event) {
+      let rect = canvas.getBoundingClientRect();
+      let x = event.clientX - rect.left;
+      let y = event.clientY - rect.top;
+
+      // Check if the mouse event occurs within the canvas area
+      if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
+        let cellWidth = canvas.width / 10;
+        let cellHeight = canvas.height / 10;
+        x = Math.floor(x / cellWidth) * cellWidth;
+        y = Math.floor(y / cellHeight) * cellHeight;
+
+        // Add a new falling square to the array if no collision
+        if (!checkCollision({x: x, y: y, width: cellWidth, height: cellHeight})) {
+          squares.push({
+            x: x,
+            y: y,
+            width: cellWidth,
+            height: cellHeight,
+            speed: 3 // Adjust the falling speed as needed
+          });
+        }
+      }
+    }
+
+    // Function to check collision with existing squares
+    function checkCollision(newSquare) {
+      for (let i = 0; i < squares.length; i++) {
+        let existingSquare = squares[i];
+        if (newSquare.x === existingSquare.x && newSquare.y === existingSquare.y) {
+          return true; // Collision detected
+        }
+      }
+      return false; // No collision detected
+    }
+
+    // Event listeners for drawing
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", continueDrawing);
+    canvas.addEventListener("mouseup", stopDrawing);
+
+    // DRAW THE GRID ------------------------------------------------------------
+    function drawGrid() {
+      // Draw black background
+      context.fillStyle = "black";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw white grid
+      context.strokeStyle = "white";
+      context.lineWidth = 1;
+
+      // Draw vertical grid lines
+      for (let x = 0; x <= canvas.width; x += canvas.width / 10) {
+        context.beginPath();
+        context.moveTo(x, 0);
+        context.lineTo(x, canvas.height);
+        context.stroke();
+      }
+
+      // Draw horizontal grid lines
+      for (let y = 0; y <= canvas.height; y += canvas.height / 10) {
+        context.beginPath();
+        context.moveTo(0, y);
+        context.lineTo(canvas.width, y);
+        context.stroke();
+      }
+    }
+
+    draw();
+  });
+</script>
